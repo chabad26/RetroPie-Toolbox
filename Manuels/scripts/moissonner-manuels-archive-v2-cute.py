@@ -325,6 +325,51 @@ def score_candidate(
     tokens = important_tokens(search_name)
     search_norm = normalize(search_name)
 
+    # Rejet des manuels coréens quand on cherche FR/EN.
+    # Ici on évite candidate.get(), car score_candidate() ne reçoit pas d'objet candidate.
+    candidate_blob = " ".join(
+        str(value)
+        for value in locals().values()
+        if isinstance(value, (str, int, float))
+    ).lower()
+
+    bad_language_tokens = [
+        "_kr",
+        "-kr",
+        "(kr",
+        "[kr",
+        " kr ",
+        " korea",
+        "korean",
+        "_kor",
+        "-kor",
+        "(kor",
+        "[kor",
+        " kor ",
+        "_pt",
+        "-pt",
+        "(pt",
+        "[pt",
+        " pt ",
+        "_por",
+        "-por",
+        "(por",
+        "[por",
+        " portuguese",
+        " portugues",
+        " português",
+        " brazil",
+        " brasil",
+        "_br",
+        "-br",
+        "(br",
+        "[br",
+    ]
+
+    if any(token in candidate_blob for token in bad_language_tokens):
+        return -999, "korean_manual_rejected"
+
+
     if "jurassic park" in search_norm:
         jurassic_bad = {
             "lost world",
@@ -648,6 +693,39 @@ def update_gamelist(system: str, mappings: dict[str, Path]) -> None:
     print(f"   Backup : {backup}")
 
 
+
+def clean_multidisc_name(name: str) -> str:
+    cleaned = name
+
+    patterns = [
+        r'\s*[\(\[]\s*(?:disc|disk|cd|disque)\s*\d+\s*(?:of|sur|/)?\s*\d*\s*[\)\]]',
+        r'\s*[\(\[]\s*(?:disc|disk|cd|disque)\s*[a-z]\s*[\)\]]',
+        r'\s*-\s*(?:disc|disk|cd|disque)\s*\d+\s*(?:of|sur|/)?\s*\d*',
+        r'\s+(?:disc|disk|cd|disque)\s*\d+\s*(?:of|sur|/)?\s*\d*$',
+    ]
+
+    for pattern in patterns:
+        cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
+
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    cleaned = cleaned.strip(" -_")
+
+    return cleaned
+
+
+def add_multidisc_mappings(mappings: dict, rows: list[dict], search_name: str, destination: Path) -> None:
+    base_name = clean_multidisc_name(search_name)
+    base_norm = normalize(base_name)
+
+    for other_row in rows:
+        other_original = other_row.get("name", "")
+        other_search = other_row.get("search_name", other_original)
+        other_base = clean_multidisc_name(other_search)
+
+        if normalize(other_base) == base_norm:
+            mappings[other_original] = destination
+
+
 def is_valid_pdf(path: Path) -> bool:
     try:
         if not path.is_file():
@@ -808,23 +886,27 @@ def process_system(args, system: str, rows: list[dict], start_index: int = 0) ->
 
         original_name = row["name"]
         search_name = row["search_name"]
+        manual_search_name = clean_multidisc_name(search_name)
         destination = (
             MANUALS_ROOT
             / system
-            / (safe_filename(search_name) + ".pdf")
+            / (safe_filename(manual_search_name) + ".pdf")
         )
 
         print(f"[{index}/{total}] {original_name}")
         print(f"  Nom propre : {search_name}")
 
+        if manual_search_name != search_name:
+            print(f"  Nom manuel : {manual_search_name}")
+
         if is_valid_pdf(destination):
             print(f"  OK déjà présent : {destination}")
-            mappings[original_name] = destination
+            add_multidisc_mappings(mappings, rows, search_name, destination)
 
             report_rows.append({
                 "system": system,
                 "original_name": original_name,
-                "search_name": search_name,
+                "search_name": manual_search_name,
                 "status": "already_exists",
                 "language": "",
                 "score": "",
@@ -848,7 +930,7 @@ def process_system(args, system: str, rows: list[dict], start_index: int = 0) ->
             print(f"  ⚠️ PDF suspect ignoré : {destination}")
 
         best = find_best_pdf(
-            search_name,
+            manual_search_name,
             system,
             args.language,
             args.rows,
@@ -857,7 +939,7 @@ def process_system(args, system: str, rows: list[dict], start_index: int = 0) ->
 
         if best is None and args.language == "fr":
             best = find_best_pdf(
-                search_name,
+                manual_search_name,
                 system,
                 "en",
                 args.rows,
@@ -869,7 +951,7 @@ def process_system(args, system: str, rows: list[dict], start_index: int = 0) ->
             report_rows.append({
                 "system": system,
                 "original_name": original_name,
-                "search_name": search_name,
+                "search_name": manual_search_name,
                 "status": "not_found",
                 "language": "",
                 "score": "",
@@ -901,7 +983,7 @@ def process_system(args, system: str, rows: list[dict], start_index: int = 0) ->
             if download_pdf(best["url"], destination):
                 if is_valid_pdf(destination):
                     print(f"  📄 Téléchargé : {destination}")
-                    mappings[original_name] = destination
+                    add_multidisc_mappings(mappings, rows, search_name, destination)
                     status = "downloaded"
                 else:
                     print(f"  ⚠️ Téléchargé mais PDF invalide : {destination}")
