@@ -1338,3 +1338,157 @@ Objectif : fournir un kit simple pour aider d’autres utilisateurs RetroPie à 
 
 Certains chemins doivent être modifiés selon l’installation de l’utilisateur.
 
+<!-- MANUELS_V3_FR_START -->
+# Outils RetroPie Save Tools
+
+Ce dépôt regroupe mes scripts maison pour améliorer mon installation RetroPie / EmulationStation.
+
+Le projet est encore expérimental, mais plusieurs éléments sont déjà fonctionnels sur ma configuration.
+
+## Objectifs
+
+- Ajouter des systèmes non prévus de base dans RetroPie.
+- Gérer des profils utilisateurs pour certains émulateurs.
+- Rechercher et télécharger des manuels de jeux.
+- Relier automatiquement les manuels aux jeux dans les `gamelist.xml`.
+- Ouvrir un manuel en jeu avec une combinaison de touches.
+
+## Systèmes ajoutés / améliorés
+
+### Nintendo Switch
+
+Gestion via Eden avec profils séparés :
+
+- Lucas
+- Nolan
+- Océane
+- Oliv
+
+Chaque profil possède ses propres dossiers de configuration et de sauvegarde, avec certains éléments communs comme les clés.
+
+### PlayStation 3
+
+Gestion via RPCS3 avec profils séparés.
+
+Les dossiers lourds sont partagés quand c’est possible, tandis que les sauvegardes restent propres à chaque profil.
+
+### Xbox 360
+
+Gestion via Xenia Canary avec sélection de profil au lancement.
+
+Chaque profil possède son propre dossier `content`, ce qui permet de séparer les sauvegardes.
+
+## Manuels de jeux
+
+Les scripts du dossier `Manuels/scripts` permettent de rechercher, télécharger et associer des manuels PDF aux jeux RetroPie.
+
+### Sources utilisées
+
+La moissonneuse V3 utilise plusieurs sources :
+
+1. `localcsv`  
+   Liens validés manuellement dans un CSV local.
+
+2. `notipix`  
+   Source française pour les notices rétro.  
+   Le site renvoie souvent vers des fichiers hébergés sur Google Drive.
+
+3. `archive`  
+   Recherche de secours via Archive.org.
+
+4. `replacementdocs`  
+   Conservé en expérimental, mais actuellement peu fiable.
+
+### Scripts principaux
+
+```text
+Manuels/scripts/scan-gamelists-manuels.py
+Manuels/scripts/prepare-recherche-manuels.py
+Manuels/scripts/moissonner-manuels-v3.py
+Manuels/scripts/moissonner-manuels-v3-cute.py
+Manuels/scripts/update-gamelists-manuals-from-pdfs.py
+Manuels/scripts/open-current-manual.sh
+Manuels/scripts/set-current-manual.py
+Manuels/scripts/manual-hotkey-watcher.py
+Manuels/scripts/show-current-manual-status.sh
+Moissonneuse V3
+
+Utilisation simple :
+
+cd /home/retropie/Documents/save_retropie/Manuels
+scripts/moissonner-manuels-v3.py nes --limit 20 --debug
+
+Téléchargement prudent :
+
+scripts/moissonner-manuels-v3.py nes --download --sleep 8
+
+Sources par défaut :
+
+localcsv,notipix,archive
+Moissonneuse V3 Cute
+
+La version cute est un lanceur plus confortable autour de la V3.
+
+Elle ajoute :
+
+choix de console ;
+traitement de toutes les consoles ;
+reprise après interruption ;
+mode dry-run ou téléchargement ;
+pause entre les requêtes.
+
+Exemples :
+
+scripts/moissonner-manuels-v3-cute.py --choose --limit 20 --debug
+scripts/moissonner-manuels-v3-cute.py --choose --download --sleep 4
+scripts/moissonner-manuels-v3-cute.py --all --download --sleep 6
+scripts/moissonner-manuels-v3-cute.py --resume
+Ouverture des manuels en jeu
+
+Au lancement d’un jeu, le système vérifie si un manuel est disponible.
+
+Si un manuel existe, une notification s’affiche avec la combinaison :
+
+L3 + R3
+
+Pendant le jeu, appuyer sur L3 + R3 ouvre le manuel associé.
+
+Le watcher utilisé est :
+
+Manuels/scripts/manual-hotkey-watcher.py
+
+Le script d’affichage au lancement est :
+
+Manuels/scripts/show-current-manual-status.sh
+Organisation des dossiers
+/home/retropie/Documents/save_retropie/
+├── Manuels/
+│   ├── pdf/
+│   ├── rapports/
+│   └── scripts/
+├── ps3_profiles/
+├── switch_profiles/
+└── xbox360_profiles/
+
+Les dossiers de profils et les PDF téléchargés ne sont pas destinés à être poussés sur GitHub.
+
+État actuel
+
+Fonctionnel sur ma configuration :
+
+profils Switch ;
+profils PS3 ;
+profils Xbox 360 ;
+recherche de manuels avec Archive.org ;
+recherche de manuels français avec Notipix ;
+téléchargement depuis Google Drive quand le lien est public ;
+association des manuels dans les gamelist.xml ;
+notification au lancement du jeu ;
+ouverture en jeu avec L3 + R3.
+
+Le projet reste expérimental et pensé pour mon installation RetroPie.
+Certains chemins peuvent nécessiter une adaptation sur une autre machine.
+
+<!-- MANUELS_V3_FR_END -->
+
+
