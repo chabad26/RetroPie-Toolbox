@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+
+from pathlib import Path
+import subprocess
+import sys
+import os
+
+HOME = Path.home()
+ROOT = HOME / "Documents/save_retropie"
+MANUELS = ROOT / "Manuels"
+
+COMMANDS = {
+    "download_manuals": [str(MANUELS / "scripts/moissonner-manuels-v3-cute.py"), "--choose"],
+    "check_manuals": [str(MANUELS / "scripts/check-manuels.py"), "--only-problems"],
+    "optimize_manuals": [str(MANUELS / "scripts/optimize-manuels.py"), "--only-problems", "--min-size", "50M"],
+    "doctor": [str(ROOT / "scripts/check-retropie.py"), "--doctor", "--stats"],
+    "doctor_fix": [str(ROOT / "scripts/check-retropie.py"), "--fix", "--doctor", "--stats"],
+    "manual_summary": [str(MANUELS / "scripts/resume-qualite-manuels.py"), "--limit", "20"],
+}
+
+
+def clear():
+    os.system("clear")
+
+
+def pause():
+    input("\nAppuie sur Entrée pour revenir au menu...")
+
+
+def run(command):
+    print()
+    print("Commande :")
+    print(" ".join(command))
+    print()
+
+    try:
+        subprocess.call(command)
+    except KeyboardInterrupt:
+        print("\nInterruption demandée.")
+
+
+def ask_yes_no(question):
+    answer = input(f"{question} [o/N] : ").strip().lower()
+    return answer in ("o", "oui", "y", "yes")
+
+
+def download_manuals():
+    command = COMMANDS["download_manuals"].copy()
+
+    if ask_yes_no("Télécharger réellement les PDF ?"):
+        command.append("--download")
+    else:
+        command.append("--debug")
+
+    sleep = input("Pause entre les requêtes en secondes [4] : ").strip() or "4"
+    command.extend(["--sleep", sleep])
+
+    run(command)
+
+
+def check_manuals():
+    command = COMMANDS["check_manuals"].copy()
+
+    if ask_yes_no("Vérifier aussi les liens gamelist.xml ?"):
+        command.append("--check-gamelists")
+
+    run(command)
+
+
+def optimize_manuals():
+    print()
+    print("Modes optimisation :")
+    print("1) Dry-run sur les PDF problématiques > 50 Mo")
+    print("2) Optimiser les PDF problématiques > 50 Mo")
+    print("3) Optimiser un fichier précis")
+    print("0) Retour")
+
+    choice = input("\nChoix : ").strip()
+
+    if choice == "1":
+        run(COMMANDS["optimize_manuals"] + ["--dry-run"])
+
+    elif choice == "2":
+        if ask_yes_no("Confirmer optimisation réelle ?"):
+            run(COMMANDS["optimize_manuals"])
+
+    elif choice == "3":
+        path = input("Chemin du PDF, ex: pdf/gba/Fichier.pdf : ").strip()
+
+        if path:
+            run([str(MANUELS / "scripts/optimize-manuels.py"), path, "--quality", "ebook"])
+
+
+def profiles_info():
+    print()
+    print("Profils configurés :")
+    print()
+    print("Switch / Eden :")
+    print("  /home/retropie/Documents/save_retropie/switch_profiles")
+    print()
+    print("PS3 / RPCS3 :")
+    print("  /home/retropie/Documents/save_retropie/ps3_profiles")
+    print()
+    print("Xbox 360 / Xenia :")
+    print("  /home/retropie/Documents/save_retropie/xbox360_profiles")
+    print()
+    print("Le changement de profil se fait au lancement des jeux via les launchers Carbon.")
+
+
+def menu():
+    while True:
+        clear()
+        print("═══════════════════════════════════════════════")
+        print("        RetroPie Save Tools")
+        print("═══════════════════════════════════════════════")
+        print()
+        print("  1) Télécharger / rechercher des manuels")
+        print("  2) Vérifier les manuels")
+        print("  3) Résumé qualité des manuels")
+        print("  4) Optimiser les PDF lourds")
+        print("  5) Diagnostic complet")
+        print("  6) Réparer + diagnostic")
+        print("  7) Infos profils joueurs")
+        print("  0) Quitter")
+        print()
+
+        choice = input("Choix : ").strip()
+
+        if choice == "1":
+            download_manuals()
+            pause()
+
+        elif choice == "2":
+            check_manuals()
+            pause()
+
+        elif choice == "3":
+            run(COMMANDS["manual_summary"])
+            pause()
+
+        elif choice == "4":
+            optimize_manuals()
+            pause()
+
+        elif choice == "5":
+            run(COMMANDS["doctor"])
+            pause()
+
+        elif choice == "6":
+            if ask_yes_no("Lancer les réparations automatiques simples ?"):
+                run(COMMANDS["doctor_fix"])
+            pause()
+
+        elif choice == "7":
+            profiles_info()
+            pause()
+
+        elif choice == "0":
+            print("À plus dans la forge RetroPie.")
+            return
+
+        else:
+            print("Choix invalide.")
+            pause()
+
+
+if __name__ == "__main__":
+    menu()

@@ -1491,4 +1491,157 @@ Certains chemins peuvent nécessiter une adaptation sur une autre machine.
 
 <!-- MANUELS_V3_FR_END -->
 
+## Fonctionnalités principales
 
+### Gestion des profils joueurs
+
+Les émulateurs suivants peuvent utiliser plusieurs profils indépendants :
+
+- Nintendo Switch (Eden)
+- Sony PlayStation 3 (RPCS3)
+- Microsoft Xbox 360 (Xenia Canary)
+
+Chaque joueur possède son propre environnement :
+
+- sauvegardes
+- paramètres
+- cache
+- shaders
+- données utilisateur
+
+Profils actuellement utilisés :
+
+- Lucas
+- Nolan
+- Océane
+- Oliv
+
+Le choix du profil est proposé au lancement du jeu via une interface inspirée du thème Carbon de RetroPie, entièrement pilotable à la manette.
+
+## Gestion des manuels
+
+Le projet permet désormais de :
+
+- rechercher automatiquement les manuels
+- télécharger les PDF
+- associer automatiquement les manuels aux `gamelist.xml`
+- contrôler la qualité des PDF
+- optimiser automatiquement les PDF trop volumineux
+- détecter les liens cassés
+- vérifier les PDF chiffrés
+- détecter les fichiers anormalement petits ou volumineux
+
+## Sources utilisées
+
+La recherche de manuels utilise actuellement :
+
+- Archive.org
+- Notipix
+
+Les téléchargements sont réalisés uniquement lorsque le manuel est disponible publiquement.
+
+## Consultation des manuels pendant le jeu
+
+Lorsqu'un manuel est associé au jeu :
+
+- une notification indique qu'un manuel est disponible au lancement ;
+- la combinaison **L3 + R3** ouvre le manuel sans quitter le jeu ;
+- le jeu continue de tourner en arrière-plan ;
+- le lecteur PDF est entièrement contrôlable à la manette.
+
+Contrôles :
+
+| Action | Manette |
+|---------|----------|
+| Ouvrir le manuel | L3 + R3 |
+| Défiler | Croix directionnelle ou Stick |
+| Page suivante | Droite |
+| Page précédente | Gauche |
+| Zoom + | R1 |
+| Zoom - | L1 |
+| Ajuster la largeur | Start |
+| Fermer le manuel | A ou B |
+
+## Contrôle qualité des manuels
+
+Un outil dédié permet de vérifier automatiquement :
+
+- nombre de pages
+- poids du PDF
+- poids moyen par page
+- PDF chiffrés
+- liens cassés dans les gamelists
+- manuels présents mais non associés
+- fichiers suspects
+
+Un rapport CSV est généré automatiquement.
+
+## Optimisation automatique
+
+Les PDF volumineux peuvent être optimisés grâce à Ghostscript.
+
+Fonctionnalités :
+
+- sauvegarde automatique de l'original
+- plusieurs niveaux de qualité
+- mode Dry-Run
+- optimisation par dossier ou par fichier
+- rapport détaillé des gains obtenus
+
+## Diagnostic RetroPie
+
+Le script `check-retropie.py` permet de contrôler rapidement l'installation.
+
+Il vérifie notamment :
+
+- dépendances Python
+- présence des émulateurs
+- scripts de lancement
+- profils utilisateurs
+- manuels
+- gamelists
+- liens symboliques
+- qualité des PDF
+
+Il peut également effectuer certaines réparations automatiquement.
+
+## Menu RetroPie Tools
+
+Un menu unique permet désormais d'accéder aux principales fonctionnalités :
+
+- téléchargement des manuels
+- contrôle qualité
+- optimisation des PDF
+- diagnostic
+- réparation
+- résumé des statistiques
+- informations sur les profils
+
+Objectif : rendre l'ensemble du projet accessible sans avoir à lancer chaque script manuellement.
+
+## Roadmap
+
+### ✔ Terminé
+
+- Gestion des profils Switch
+- Gestion des profils PS3
+- Gestion des profils Xbox 360
+- Téléchargement automatique des manuels
+- Association automatique aux gamelists
+- Consultation des manuels pendant le jeu
+- Contrôle qualité des PDF
+- Optimisation automatique des PDF
+- Diagnostic de l'installation
+
+### 🚧 En cours
+
+- Interface utilisateur unifiée (`retropie-tools`)
+- Amélioration de l'interface Carbon
+- Compatibilité avec davantage de manettes
+
+### 💡 Prévu
+
+- Scraper des médias
+- Mise à jour automatique des manuels
+- Traductions (README anglais)
+- Création d'un installeur "one-click"
